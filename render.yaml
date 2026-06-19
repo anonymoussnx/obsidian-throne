@@ -1,0 +1,10 @@
+echo "services:
+  - type: web
+    name: obsidian-throne
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python throne_render.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0" > render.yaml

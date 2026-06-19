@@ -1,0 +1,4 @@
+echo "flask
+qrcode
+pillow
+requests" > requirements.txt
