@@ -1,4 +1,4 @@
 flask
 qrcode
 pillow
-requests" > requirements.txt
+requests
